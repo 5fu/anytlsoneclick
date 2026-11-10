@@ -6,7 +6,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 echo "========================================="
-echo "       AnyTLS 自动化安装脚本"
+echo "        AnyTLS 自动化安装脚本"
 echo "========================================="
 
 if [ -f /etc/os-release ]; then
@@ -150,19 +150,21 @@ EOF
 fi
 
 ENCODED_NAME=$(echo "$ANYTLS_NAME" | sed 's/ /%20/g')
-ANYTLS_LINK="anytls://$ANYTLS_PASS@$SERVER_IP:$ANYTLS_PORT#$ENCODED_NAME"
+# 将 allowInsecure 参数修改为了 true
+ANYTLS_LINK="anytls://$ANYTLS_PASS@$SERVER_IP:$ANYTLS_PORT?allowInsecure=true#$ENCODED_NAME"
 
 echo ""
 echo "========================================="
-echo "       AnyTLS 安装与配置成功！"
+echo "        AnyTLS 安装与配置成功！"
 echo "========================================="
 echo "监听端口 : $ANYTLS_PORT"
 echo "连接密码 : $ANYTLS_PASS"
 echo "节点名称 : $ANYTLS_NAME"
+echo "跳过证书 : true (允许自签/不安全证书)"
 echo "-----------------------------------------"
 echo "【AnyTLS 客户端连接链接】:"
 echo "$ANYTLS_LINK"
 echo "-----------------------------------------"
 echo "【手机扫码二维码 (网页直链)】:"
-echo "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=$(echo "$ANYTLS_LINK" | sed 's/:/%3A/g;s/\//%2F/g;s/@/%40/g;s/#/%23/g')"
+echo "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=$(echo "$ANYTLS_LINK" | sed 's/:/%3A/g;s/\//%2F/g;s/@/%40/g;s/#/%23/g;s/\?/%3F/g;s/=/./g;s/&/%26/g')"
 echo "========================================="
