@@ -5,8 +5,12 @@
 
 安装
 在 VPS 终端中以 `root` 权限执行以下一键安装脚本：
+
+
 sh -c "$(curl -fsSL [https://raw.githubusercontent.com/5fu/anytlsoneclick/main/install.sh](https://raw.githubusercontent.com/5fu/anytlsoneclick/main/install.sh))"
 
 卸载
 在 VPS 终端中以 `root` 权限执行以下一键安装脚本：
+
+
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/5fu/anytlsoneclick/main/uninstall.sh)"
