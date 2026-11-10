@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# 确保以 root 权限运行
 if [ "$(id -u)" -ne 0 ]; then
     echo "错误：请使用 root 权限运行此脚本 (sudo sh install.sh)"
     exit 1
@@ -10,7 +9,6 @@ echo "========================================="
 echo "       AnyTLS 自动化安装脚本"
 echo "========================================="
 
-# 1. 判断 VPS 系统类型 (Debian / Alpine)
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     OS_NAME=$ID
@@ -33,12 +31,11 @@ case "$OS_NAME" in
         echo "检测到系统为：Alpine Linux"
         ;;
     *)
-        echo "错误：暂不支持的系统类型: $OS_NAME (仅支持 debian 和 alpine)"
+        echo "错误：暂不支持的系统类型: $OS_NAME"
         exit 1
         ;;
 esac
 
-# 2. 判断系统架构
 ARCH=$(uname -m)
 case "$ARCH" in
     x86_64|amd64)
@@ -53,7 +50,6 @@ case "$ARCH" in
         ;;
 esac
 
-# 3. 安装依赖工具 (curl, unzip)
 echo "正在检查并安装必要依赖 (curl, unzip)..."
 if [ "$OS_TYPE" = "debian" ]; then
     apt-get update -y && apt-get install -y curl unzip
@@ -61,14 +57,12 @@ elif [ "$OS_TYPE" = "alpine" ]; then
     apk update && apk add curl unzip
 fi
 
-# 4. 获取服务器 IP 地址（用于默认名称生成及后续链接）
 echo "正在获取服务器 IP 地址..."
 SERVER_IP=$(curl -s4 icanhazip.com || curl -s6 icanhazip.com)
 if [ -z "$SERVER_IP" ]; then
     SERVER_IP="127.0.0.1"
 fi
 
-# 5. 引导用户输入端口、密码和节点名称（默认采用 IP-anytls）
 echo ""
 read -p "请输入 AnyTLS 监听端口 (默认 443): " ANYTLS_PORT
 ANYTLS_PORT=${ANYTLS_PORT:-443}
@@ -83,8 +77,6 @@ DEFAULT_NAME="${SERVER_IP}-anytls"
 read -p "请输入节点显示名称 (默认 $DEFAULT_NAME): " ANYTLS_NAME
 ANYTLS_NAME=${ANYTLS_NAME:-$DEFAULT_NAME}
 
-# 6. 创建安装目录并下载解压
-INSTALL_DIR="/usr/local/bin"
 WORK_DIR="/etc/anytls"
 mkdir -p "$WORK_DIR"
 cd "$WORK_DIR" || exit 1
@@ -100,7 +92,7 @@ echo "正在下载：$DOWNLOAD_URL"
 curl -L -o anytls.zip "$DOWNLOAD_URL"
 
 if [ ! -f "anytls.zip" ]; then
-    echo "错误：下载失败，请检查网络或 GitHub 连通性。"
+    echo "错误：下载失败，请检查网络。"
     exit 1
 fi
 
@@ -108,12 +100,9 @@ echo "正在解压..."
 unzip -o anytls.zip
 chmod +x anytls-server
 
-# 7. 后台运行测试
 echo "正在启动 AnyTLS 服务..."
 nohup ./anytls-server -l 0.0.0.0:"$ANYTLS_PORT" -p "$ANYTLS_PASS" > /dev/null 2>&1 &
-nohup ./anytls-server -l 0.0.0.0:"$ANYTLS_PORT" -p "$ANYTLS_PASS" &
 
-# 8. 根据系统类型自动生成开机自启服务
 if [ "$OS_TYPE" = "debian" ]; then
     SERVICE_FILE="/etc/systemd/system/anytls.service"
     echo "正在配置 systemd 开机自启服务..."
@@ -160,8 +149,6 @@ EOF
     service anytls restart
 fi
 
-# 9. 生成 anytls 协议链接
-# 格式化 URL 编码的名字（处理空格等特殊字符）
 ENCODED_NAME=$(echo "$ANYTLS_NAME" | sed 's/ /%20/g')
 ANYTLS_LINK="anytls://$ANYTLS_PASS@$SERVER_IP:$ANYTLS_PORT#$ENCODED_NAME"
 
