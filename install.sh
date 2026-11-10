@@ -1,16 +1,16 @@
 #!/bin/sh
 
-# È·±£ÒÔ root È¨ÏŞÔËĞĞ
+# ç¡®ä¿ä»¥ root æƒé™è¿è¡Œ
 if [ "$(id -u)" -ne 0 ]; then
-    echo "´íÎó£ºÇëÊ¹ÓÃ root È¨ÏŞÔËĞĞ´Ë½Å±¾ (sudo sh install.sh)"
+    echo "é”™è¯¯ï¼šè¯·ä½¿ç”¨ root æƒé™è¿è¡Œæ­¤è„šæœ¬ (sudo sh install.sh)"
     exit 1
 fi
 
 echo "========================================="
-echo "       AnyTLS ×Ô¶¯»¯°²×°½Å±¾"
+echo "       AnyTLS è‡ªåŠ¨åŒ–å®‰è£…è„šæœ¬"
 echo "========================================="
 
-# 1. ÅĞ¶Ï VPS ÏµÍ³ÀàĞÍ (Debian / Alpine)
+# 1. åˆ¤æ–­ VPS ç³»ç»Ÿç±»å‹ (Debian / Alpine)
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     OS_NAME=$ID
@@ -19,26 +19,26 @@ elif [ -f /etc/alpine-release ]; then
 elif [ -f /etc/debian_version ]; then
     OS_NAME="debian"
 else
-    echo "´íÎó£ºÎŞ·¨Ê¶±ğµ±Ç°µÄÏµÍ³ÀàĞÍ£¬½öÖ§³Ö Debian ºÍ Alpine¡£"
+    echo "é”™è¯¯ï¼šæ— æ³•è¯†åˆ«å½“å‰çš„ç³»ç»Ÿç±»å‹ï¼Œä»…æ”¯æŒ Debian å’Œ Alpineã€‚"
     exit 1
 fi
 
 case "$OS_NAME" in
     debian*|ubuntu*)
         OS_TYPE="debian"
-        echo "¼ì²âµ½ÏµÍ³Îª£ºDebian/Ubuntu ÏµÁĞ"
+        echo "æ£€æµ‹åˆ°ç³»ç»Ÿä¸ºï¼šDebian/Ubuntu ç³»åˆ—"
         ;;
     alpine*)
         OS_TYPE="alpine"
-        echo "¼ì²âµ½ÏµÍ³Îª£ºAlpine Linux"
+        echo "æ£€æµ‹åˆ°ç³»ç»Ÿä¸ºï¼šAlpine Linux"
         ;;
     *)
-        echo "´íÎó£ºÔİ²»Ö§³ÖµÄÏµÍ³ÀàĞÍ: $OS_NAME (½öÖ§³Ö debian ºÍ alpine)"
+        echo "é”™è¯¯ï¼šæš‚ä¸æ”¯æŒçš„ç³»ç»Ÿç±»å‹: $OS_NAME (ä»…æ”¯æŒ debian å’Œ alpine)"
         exit 1
         ;;
 esac
 
-# 2. ÅĞ¶ÏÏµÍ³¼Ü¹¹
+# 2. åˆ¤æ–­ç³»ç»Ÿæ¶æ„
 ARCH=$(uname -m)
 case "$ARCH" in
     x86_64|amd64)
@@ -48,71 +48,75 @@ case "$ARCH" in
         ANYTLS_ARCH="arm64"
         ;;
     *)
-        echo "´íÎó£º²»Ö§³ÖµÄ¼Ü¹¹: $ARCH"
+        echo "é”™è¯¯ï¼šä¸æ”¯æŒçš„æ¶æ„: $ARCH"
         exit 1
         ;;
 esac
 
-# 3. °²×°ÒÀÀµ¹¤¾ß (curl, unzip)
-echo "ÕıÔÚ¼ì²é²¢°²×°±ØÒªÒÀÀµ (curl, unzip)..."
+# 3. å®‰è£…ä¾èµ–å·¥å…· (curl, unzip)
+echo "æ­£åœ¨æ£€æŸ¥å¹¶å®‰è£…å¿…è¦ä¾èµ– (curl, unzip)..."
 if [ "$OS_TYPE" = "debian" ]; then
     apt-get update -y && apt-get install -y curl unzip
 elif [ "$OS_TYPE" = "alpine" ]; then
     apk update && apk add curl unzip
 fi
 
-# 4. Òıµ¼ÓÃ»§ÊäÈë¶Ë¿ÚºÍÃÜÂë
+# 4. è·å–æœåŠ¡å™¨ IP åœ°å€ï¼ˆç”¨äºé»˜è®¤åç§°ç”ŸæˆåŠåç»­é“¾æ¥ï¼‰
+echo "æ­£åœ¨è·å–æœåŠ¡å™¨ IP åœ°å€..."
+SERVER_IP=$(curl -s4 icanhazip.com || curl -s6 icanhazip.com)
+if [ -z "$SERVER_IP" ]; then
+    SERVER_IP="127.0.0.1"
+fi
+
+# 5. å¼•å¯¼ç”¨æˆ·è¾“å…¥ç«¯å£ã€å¯†ç å’ŒèŠ‚ç‚¹åç§°ï¼ˆé»˜è®¤é‡‡ç”¨ IP-anytlsï¼‰
 echo ""
-read -p "ÇëÊäÈë AnyTLS ¼àÌı¶Ë¿Ú (Ä¬ÈÏ 443): " ANYTLS_PORT
+read -p "è¯·è¾“å…¥ AnyTLS ç›‘å¬ç«¯å£ (é»˜è®¤ 443): " ANYTLS_PORT
 ANYTLS_PORT=${ANYTLS_PORT:-443}
 
-read -p "ÇëÊäÈë AnyTLS Á¬½ÓÃÜÂë: " ANYTLS_PASS
+read -p "è¯·è¾“å…¥ AnyTLS è¿æ¥å¯†ç : " ANYTLS_PASS
 while [ -z "$ANYTLS_PASS" ]; do
-    echo "ÃÜÂë²»ÄÜÎª¿Õ£¡"
-    read -p "ÇëÊäÈë AnyTLS Á¬½ÓÃÜÂë: " ANYTLS_PASS
+    echo "å¯†ç ä¸èƒ½ä¸ºç©ºï¼"
+    read -p "è¯·è¾“å…¥ AnyTLS è¿æ¥å¯†ç : " ANYTLS_PASS
 done
 
-# 5. ´´½¨°²×°Ä¿Â¼²¢ÏÂÔØ½âÑ¹
+DEFAULT_NAME="${SERVER_IP}-anytls"
+read -p "è¯·è¾“å…¥èŠ‚ç‚¹æ˜¾ç¤ºåç§° (é»˜è®¤ $DEFAULT_NAME): " ANYTLS_NAME
+ANYTLS_NAME=${ANYTLS_NAME:-$DEFAULT_NAME}
+
+# 6. åˆ›å»ºå®‰è£…ç›®å½•å¹¶ä¸‹è½½è§£å‹
 INSTALL_DIR="/usr/local/bin"
 WORK_DIR="/etc/anytls"
 mkdir -p "$WORK_DIR"
 cd "$WORK_DIR" || exit 1
 
-echo "ÕıÔÚ´Ó GitHub »ñÈ¡×îĞÂ°æ anytls-go ÏÂÔØÁ´½Ó..."
-# »ñÈ¡×îĞÂ°æ±¾µÄ zip ÏÂÔØÁ´½Ó
+echo "æ­£åœ¨ä» GitHub è·å–æœ€æ–°ç‰ˆ anytls-go ä¸‹è½½é“¾æ¥..."
 DOWNLOAD_URL=$(curl -s https://api.github.com/repos/anytls/anytls-go/releases/latest | grep "browser_download_url" | grep "linux" | grep "$ANYTLS_ARCH" | grep "\.zip" | head -n 1 | cut -d '"' -f 4)
 
 if [ -z "$DOWNLOAD_URL" ]; then
-    echo "¾¯¸æ£ºÎ´ÄÜ×Ô¶¯»ñÈ¡×îĞÂ°æÏÂÔØÁ´½Ó£¬³¢ÊÔÊ¹ÓÃÍ¨ÓÃÃüÃû¹æÔò..."
-    # ¶µµ×·½°¸£¨Èç¹û API »ñÈ¡Ê§°Ü£¬¿É¸ù¾İÊµ¼Ê release µ÷Õû£©
     DOWNLOAD_URL="https://github.com/anytls/anytls-go/releases/latest/download/anytls-server-linux-$ANYTLS_ARCH.zip"
 fi
 
-echo "ÕıÔÚÏÂÔØ£º$DOWNLOAD_URL"
+echo "æ­£åœ¨ä¸‹è½½ï¼š$DOWNLOAD_URL"
 curl -L -o anytls.zip "$DOWNLOAD_URL"
 
 if [ ! -f "anytls.zip" ]; then
-    echo "´íÎó£ºÏÂÔØÊ§°Ü£¬Çë¼ì²éÍøÂç»ò GitHub Á¬Í¨ĞÔ¡£"
+    echo "é”™è¯¯ï¼šä¸‹è½½å¤±è´¥ï¼Œè¯·æ£€æŸ¥ç½‘ç»œæˆ– GitHub è¿é€šæ€§ã€‚"
     exit 1
 fi
 
-echo "ÕıÔÚ½âÑ¹..."
+echo "æ­£åœ¨è§£å‹..."
 unzip -o anytls.zip
 chmod +x anytls-server
 
-# ÒÆ¶¯µ½ÏµÍ³Â·¾¶»ò±£³ÖÔÚ¹¤×÷Ä¿Â¼
-# ÕâÀïÎÒÃÇ¼ÙÉè½âÑ¹³öÀ´µÄ¿ÉÖ´ĞĞÎÄ¼şÃû½Ğ anytls-server£¬Èç¹ûÃû³Æ²»Í¬Çë°´Êµ¼Êµ÷Õû
-
-# 6. ºóÌ¨ÔËĞĞ²âÊÔ
-echo "ÕıÔÚÆô¶¯ AnyTLS ·şÎñ..."
+# 7. åå°è¿è¡Œæµ‹è¯•
+echo "æ­£åœ¨å¯åŠ¨ AnyTLS æœåŠ¡..."
 nohup ./anytls-server -l 0.0.0.0:"$ANYTLS_PORT" -p "$ANYTLS_PASS" > /dev/null 2>&1 &
 nohup ./anytls-server -l 0.0.0.0:"$ANYTLS_PORT" -p "$ANYTLS_PASS" &
 
-# 7. ¸ù¾İÏµÍ³ÀàĞÍ×Ô¶¯Éú³É¿ª»ú×ÔÆô·şÎñ
+# 8. æ ¹æ®ç³»ç»Ÿç±»å‹è‡ªåŠ¨ç”Ÿæˆå¼€æœºè‡ªå¯æœåŠ¡
 if [ "$OS_TYPE" = "debian" ]; then
-    # Debian Ê¹ÓÃ systemd
     SERVICE_FILE="/etc/systemd/system/anytls.service"
-    echo "ÕıÔÚÅäÖÃ systemd ¿ª»ú×ÔÆô·şÎñ..."
+    echo "æ­£åœ¨é…ç½® systemd å¼€æœºè‡ªå¯æœåŠ¡..."
     cat << EOF > "$SERVICE_FILE"
 [Unit]
 Description=AnyTLS Server
@@ -132,12 +136,10 @@ EOF
     systemctl daemon-reload
     systemctl enable anytls
     systemctl restart anytls
-    echo "Debian ×ÔÆôÅäÖÃÍê³É (systemd)¡£"
 
 elif [ "$OS_TYPE" = "alpine" ]; then
-    # Alpine Ê¹ÓÃ OpenRC
     INIT_FILE="/etc/init.d/anytls"
-    echo "ÕıÔÚÅäÖÃ OpenRC ¿ª»ú×ÔÆô·şÎñ..."
+    echo "æ­£åœ¨é…ç½® OpenRC å¼€æœºè‡ªå¯æœåŠ¡..."
     cat << EOF > "$INIT_FILE"
 #!/sbin/openrc-run
 
@@ -156,14 +158,24 @@ EOF
     chmod +x "$INIT_FILE"
     rc-update add anytls default
     service anytls restart
-    echo "Alpine ×ÔÆôÅäÖÃÍê³É (OpenRC)¡£"
 fi
 
+# 9. ç”Ÿæˆ anytls åè®®é“¾æ¥
+# æ ¼å¼åŒ– URL ç¼–ç çš„åå­—ï¼ˆå¤„ç†ç©ºæ ¼ç­‰ç‰¹æ®Šå­—ç¬¦ï¼‰
+ENCODED_NAME=$(echo "$ANYTLS_NAME" | sed 's/ /%20/g')
+ANYTLS_LINK="anytls://$ANYTLS_PASS@$SERVER_IP:$ANYTLS_PORT#$ENCODED_NAME"
+
+echo ""
 echo "========================================="
-echo "       AnyTLS °²×°ÓëÅäÖÃ³É¹¦£¡"
+echo "       AnyTLS å®‰è£…ä¸é…ç½®æˆåŠŸï¼"
 echo "========================================="
-echo "°²×°Ä¿Â¼: $WORK_DIR"
-echo "¼àÌı¶Ë¿Ú: $ANYTLS_PORT"
-echo "Á¬½ÓÃÜÂë: $ANYTLS_PASS"
-echo "·şÎñ×´Ì¬ÒÑÉèÎª¿ª»ú×ÔÆô¡£"
+echo "ç›‘å¬ç«¯å£ : $ANYTLS_PORT"
+echo "è¿æ¥å¯†ç  : $ANYTLS_PASS"
+echo "èŠ‚ç‚¹åç§° : $ANYTLS_NAME"
+echo "-----------------------------------------"
+echo "ã€AnyTLS å®¢æˆ·ç«¯è¿æ¥é“¾æ¥ã€‘:"
+echo "$ANYTLS_LINK"
+echo "-----------------------------------------"
+echo "ã€æ‰‹æœºæ‰«ç äºŒç»´ç  (ç½‘é¡µç›´é“¾)ã€‘:"
+echo "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=$(echo "$ANYTLS_LINK" | sed 's/:/%3A/g;s/\//%2F/g;s/@/%40/g;s/#/%23/g')"
 echo "========================================="
