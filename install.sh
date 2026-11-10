@@ -150,7 +150,7 @@ EOF
 fi
 
 ENCODED_NAME=$(echo "$ANYTLS_NAME" | sed 's/ /%20/g')
-# 将 allowInsecure 参数修改为了 true
+# 确保这里正确拼接了 allowInsecure=true
 ANYTLS_LINK="anytls://$ANYTLS_PASS@$SERVER_IP:$ANYTLS_PORT?allowInsecure=true#$ENCODED_NAME"
 
 echo ""
